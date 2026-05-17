@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 
 import { getLeads } from "../services/leadService";
 
@@ -9,7 +9,7 @@ export const useLeads = () => {
 
   const setLeads = useLeadStore((state) => state.setLeads);
 
-  const fetchLeads = async () => {
+  const fetchLeads = useCallback(async () => {
     const { data, error } = await getLeads();
 
     if (error) {
@@ -18,11 +18,11 @@ export const useLeads = () => {
     }
 
     setLeads(data);
-  };
+  }, [setLeads]);
 
   useEffect(() => {
     fetchLeads();
-  }, []);
+  }, [fetchLeads]);
 
   return {
     leads,

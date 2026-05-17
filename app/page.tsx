@@ -1,12 +1,11 @@
-import Header from '@/components/layout/Header'
-import React from 'react'
+import { redirect } from "next/navigation";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-const page = () => {
-  return (
-    <div>
-      <Header/>
-    </div>
-  )
+export default async function HomePage() {
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  redirect(user ? "/dashboard" : "/login");
 }
-
-export default page
