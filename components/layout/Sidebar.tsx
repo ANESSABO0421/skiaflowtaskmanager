@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -22,8 +22,9 @@ import {
 import { cn } from "@/lib/utils";
 import { useUiStore } from "@/store/uiStore";
 import { staggerNavItems } from "@/src/animations/sidebarAnimation";
+import { ensureGsapRegistered } from "@/lib/gsap/register";
 
-gsap.registerPlugin(useGSAP);
+ensureGsapRegistered();
 
 const menuItems = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -44,37 +45,46 @@ export default function Sidebar() {
   const navRef = useRef<HTMLElement>(null);
   const collapsed = useUiStore((s) => s.sidebarCollapsed);
   const toggleSidebar = useUiStore((s) => s.toggleSidebar);
+  const navAnimated = useRef(false);
 
   useGSAP(
     () => {
-      staggerNavItems(navRef.current);
+      if (navAnimated.current) return;
+      navAnimated.current = true;
+      const tl = staggerNavItems(navRef.current);
+      return () => {
+        tl?.kill();
+      };
     },
     { scope: navRef },
   );
 
-  useGSAP(
-    () => {
-      if (!sidebarRef.current) return;
-      gsap.to(sidebarRef.current, {
-        width: collapsed ? 72 : 260,
-        duration: 0.4,
-        ease: "power3.inOut",
-      });
-    },
-    { dependencies: [collapsed] },
-  );
+  useEffect(() => {
+    const el = sidebarRef.current;
+    if (!el) return;
+
+    const tween = gsap.to(el, {
+      width: collapsed ? 72 : 260,
+      duration: 0.4,
+      ease: "power3.inOut",
+    });
+
+    return () => {
+      tween.kill();
+    };
+  }, [collapsed]);
 
   return (
     <aside
       ref={sidebarRef}
       className={cn(
-        "relative hidden lg:flex flex-col min-h-screen border-r border-white/8 bg-black/20 backdrop-blur-xl transition-all",
+        "relative hidden lg:flex flex-col min-h-screen border-r border-white/8 bg-black/20 backdrop-blur-xl",
         collapsed ? "w-[72px]" : "w-[260px]",
       )}
     >
       <div className="flex items-center justify-between p-5 border-b border-white/8">
         {!collapsed && (
-          <div className="flex items-center gap-2" data-reveal>
+          <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-rose-600">
               <Sparkles className="h-4 w-4 text-white" />
             </div>
@@ -93,10 +103,7 @@ export default function Sidebar() {
           aria-label="Toggle sidebar"
         >
           <ChevronLeft
-            className={cn(
-              "h-4 w-4 transition-transform",
-              collapsed && "rotate-180",
-            )}
+            className={cn("h-4 w-4 transition-transform", collapsed && "rotate-180")}
           />
         </button>
       </div>
@@ -113,19 +120,13 @@ export default function Sidebar() {
               href={item.href}
               data-nav-item
               className={cn(
-                "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-300",
+                "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors duration-300",
                 isActive
-                  ? "bg-gradient-to-r from-pink-600/20 to-rose-600/10 text-pink-300 border border-pink-500/20 shadow-lg shadow-pink-500/5"
+                  ? "bg-gradient-to-r from-pink-600/20 to-rose-600/10 text-pink-300 border border-pink-500/20"
                   : "text-muted-foreground hover:text-foreground hover:bg-white/5",
               )}
             >
-              <Icon
-                size={18}
-                className={cn(
-                  "shrink-0 transition-transform group-hover:scale-110",
-                  isActive && "text-pink-400",
-                )}
-              />
+              <Icon size={18} className="shrink-0" />
               {!collapsed && <span>{item.title}</span>}
             </Link>
           );

@@ -1,20 +1,24 @@
 "use client";
 
 import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
 import { useRef } from "react";
 import { staggerReveal } from "@/src/animations/staggerReveal";
+import { ensureGsapRegistered } from "@/lib/gsap/register";
 
-gsap.registerPlugin(useGSAP);
+ensureGsapRegistered();
 
-export function useGsapReveal(selector = "[data-reveal]") {
+export function useGsapReveal(selector = "[data-reveal]", enabled = true) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
-      staggerReveal(containerRef.current, selector);
+      if (!enabled) return;
+      const tl = staggerReveal(containerRef.current, selector);
+      return () => {
+        tl?.kill();
+      };
     },
-    { scope: containerRef, dependencies: [] },
+    { scope: containerRef, dependencies: [enabled] },
   );
 
   return containerRef;

@@ -10,6 +10,7 @@ export function staggerReveal(
   const items = container.querySelectorAll(selector);
   if (!items.length) return null;
 
+  gsap.killTweensOf(items);
   const { stagger = 0.06, y = 32 } = options ?? {};
 
   return gsap.fromTo(

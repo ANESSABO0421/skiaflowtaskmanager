@@ -4,32 +4,31 @@ const supabase = createClient();
 
 export async function getAnalyticsSummary() {
   const [leads, clients, projects, invoices, tasks] = await Promise.all([
-    supabase.from("leads").select("id, status, budget", { count: "exact" }),
-    supabase.from("clients").select("id", { count: "exact" }),
-    supabase.from("projects").select("id, status", { count: "exact" }),
-    supabase.from("invoices").select("amount, status"),
-    supabase.from("tasks").select("id, status"),
+    supabase.from("leads").select("id", { count: "exact", head: true }),
+    supabase.from("clients").select("id", { count: "exact", head: true }),
+    supabase.from("projects").select("id", { count: "exact", head: true }),
+    supabase
+      .from("invoices")
+      .select("amount, status")
+      .limit(1000),
+    supabase.from("tasks").select("id", { count: "exact", head: true }),
   ]);
 
-  const paidRevenue =
-    invoices.data
-      ?.filter((i) => i.status === "paid")
-      .reduce((sum, i) => sum + Number(i.amount), 0) ?? 0;
-
-  const pendingRevenue =
-    invoices.data
-      ?.filter((i) => ["sent", "overdue"].includes(i.status))
-      .reduce((sum, i) => sum + Number(i.amount), 0) ?? 0;
+  const invoiceRows =
+    (invoices.data as { amount: number; status: string }[] | null) ?? [];
+  const paidRevenue = invoiceRows
+    .filter((i) => i.status === "paid")
+    .reduce((sum, i) => sum + Number(i.amount), 0);
+  const pendingRevenue = invoiceRows
+    .filter((i) => ["sent", "overdue"].includes(i.status))
+    .reduce((sum, i) => sum + Number(i.amount), 0);
 
   return {
     leadsCount: leads.count ?? 0,
     clientsCount: clients.count ?? 0,
     projectsCount: projects.count ?? 0,
-    tasksCount: tasks.data?.length ?? 0,
+    tasksCount: tasks.count ?? 0,
     paidRevenue,
     pendingRevenue,
-    leads: leads.data ?? [],
-    invoices: invoices.data ?? [],
-    tasks: tasks.data ?? [],
   };
 }

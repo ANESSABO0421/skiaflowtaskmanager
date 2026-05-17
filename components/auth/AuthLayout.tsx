@@ -4,8 +4,9 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useRef } from "react";
 import { fadeUp } from "@/src/animations/fadeUp";
+import { ensureGsapRegistered } from "@/lib/gsap/register";
 
-gsap.registerPlugin(useGSAP);
+ensureGsapRegistered();
 
 export default function AuthLayout({
   children,
@@ -19,20 +20,33 @@ export default function AuthLayout({
   const cardRef = useRef<HTMLDivElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
 
-  useGSAP(() => {
-    if (bgRef.current) {
-      gsap.to(bgRef.current, {
-        backgroundPosition: "100% 100%",
-        duration: 20,
-        repeat: -1,
-        yoyo: true,
-        ease: "none",
-      });
-    }
-    if (cardRef.current) {
-      fadeUp(cardRef.current.querySelectorAll("[data-auth-field]"));
-    }
-  }, []);
+  useGSAP(
+    () => {
+      let bgTween: gsap.core.Tween | null = null;
+      let fieldTween: gsap.core.Tween | null = null;
+
+      if (bgRef.current) {
+        bgTween = gsap.to(bgRef.current, {
+          backgroundPosition: "100% 100%",
+          duration: 20,
+          repeat: -1,
+          yoyo: true,
+          ease: "none",
+        });
+      }
+      if (cardRef.current) {
+        fieldTween = fadeUp(cardRef.current.querySelectorAll("[data-auth-field]"));
+      }
+
+      return () => {
+        bgTween?.kill();
+        fieldTween?.kill();
+        if (bgRef.current) gsap.killTweensOf(bgRef.current);
+        if (cardRef.current) gsap.killTweensOf(cardRef.current);
+      };
+    },
+    { scope: cardRef },
+  );
 
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center bg-[#050106] overflow-hidden">

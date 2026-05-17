@@ -1,20 +1,24 @@
 "use client";
 
 import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
 import { useRef } from "react";
 import { pageTransitionEnter } from "@/src/animations/pageTransition";
+import { ensureGsapRegistered } from "@/lib/gsap/register";
 
-gsap.registerPlugin(useGSAP);
+ensureGsapRegistered();
 
-export function usePageTransition() {
+export function usePageTransition(enabled = true) {
   const pageRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
-      pageTransitionEnter(pageRef.current);
+      if (!enabled) return;
+      const tl = pageTransitionEnter(pageRef.current);
+      return () => {
+        tl?.kill();
+      };
     },
-    { scope: pageRef },
+    { scope: pageRef, dependencies: [enabled] },
   );
 
   return pageRef;

@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import type { Task, TaskStatus } from "@/types/database";
 
+const MAX_TASKS = 500;
+
 interface TaskState {
   tasks: Task[];
   setTasks: (tasks: Task[]) => void;
@@ -12,8 +14,12 @@ interface TaskState {
 
 export const useTaskStore = create<TaskState>((set) => ({
   tasks: [],
-  setTasks: (tasks) => set({ tasks }),
-  addTask: (task) => set((s) => ({ tasks: [...s.tasks, task] })),
+  setTasks: (tasks) => set({ tasks: tasks.slice(0, MAX_TASKS) }),
+  addTask: (task) =>
+    set((s) => {
+      if (s.tasks.some((t) => t.id === task.id)) return s;
+      return { tasks: [task, ...s.tasks].slice(0, MAX_TASKS) };
+    }),
   updateTask: (id, updates) =>
     set((s) => ({
       tasks: s.tasks.map((t) => (t.id === id ? { ...t, ...updates } : t)),

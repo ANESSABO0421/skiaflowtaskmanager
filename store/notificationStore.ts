@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import type { Notification } from "@/types/database";
 
+const MAX_NOTIFICATIONS = 100;
+
 interface NotificationState {
   notifications: Notification[];
   unreadCount: number;
@@ -13,16 +15,25 @@ interface NotificationState {
 export const useNotificationStore = create<NotificationState>((set) => ({
   notifications: [],
   unreadCount: 0,
-  setNotifications: (notifications) =>
+  setNotifications: (notifications) => {
+    const capped = notifications.slice(0, MAX_NOTIFICATIONS);
     set({
-      notifications,
-      unreadCount: notifications.filter((n) => !n.read).length,
-    }),
+      notifications: capped,
+      unreadCount: capped.filter((n) => !n.read).length,
+    });
+  },
   addNotification: (notification) =>
-    set((s) => ({
-      notifications: [notification, ...s.notifications],
-      unreadCount: notification.read ? s.unreadCount : s.unreadCount + 1,
-    })),
+    set((s) => {
+      if (s.notifications.some((n) => n.id === notification.id)) return s;
+      const notifications = [notification, ...s.notifications].slice(
+        0,
+        MAX_NOTIFICATIONS,
+      );
+      return {
+        notifications,
+        unreadCount: notifications.filter((n) => !n.read).length,
+      };
+    }),
   markRead: (id) =>
     set((s) => {
       const notifications = s.notifications.map((n) =>

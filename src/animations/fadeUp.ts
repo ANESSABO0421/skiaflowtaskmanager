@@ -6,6 +6,7 @@ export function fadeUp(
 ) {
   const { delay = 0, duration = 0.7, y = 40 } = options ?? {};
 
+  gsap.killTweensOf(elements);
   return gsap.fromTo(
     elements,
     { opacity: 0, y },

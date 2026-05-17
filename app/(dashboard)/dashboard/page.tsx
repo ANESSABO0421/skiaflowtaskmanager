@@ -1,7 +1,6 @@
 "use client";
 
 import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
 import { useEffect, useRef, useState } from "react";
 import { Briefcase, Users, FolderKanban, DollarSign } from "lucide-react";
 import PageWrapper from "@/components/layout/PageWrapper";
@@ -11,8 +10,9 @@ import { getAnalyticsSummary } from "@/features/analytics/services/analyticsServ
 import { animateDashboardCards } from "@/src/animations/dashboardAnimation";
 import { formatCurrency } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ensureGsapRegistered } from "@/lib/gsap/register";
 
-gsap.registerPlugin(useGSAP);
+ensureGsapRegistered();
 
 export default function DashboardPage() {
   const gridRef = useRef<HTMLDivElement>(null);
@@ -25,7 +25,10 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
+    let cancelled = false;
+
     getAnalyticsSummary().then((data) => {
+      if (cancelled) return;
       setStats({
         leadsCount: data.leadsCount,
         clientsCount: data.clientsCount,
@@ -34,19 +37,28 @@ export default function DashboardPage() {
       });
       setLoading(false);
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useGSAP(
     () => {
-      if (!loading) animateDashboardCards(gridRef.current);
+      if (loading) return;
+      const tl = animateDashboardCards(gridRef.current);
+      return () => {
+        tl?.kill();
+      };
     },
-    { dependencies: [loading] },
+    { scope: gridRef, dependencies: [loading] },
   );
 
   return (
     <PageWrapper
       title="Dashboard"
       description="Overview of your freelance operations"
+      animate={false}
     >
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">

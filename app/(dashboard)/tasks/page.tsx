@@ -1,5 +1,6 @@
 "use client";
-import { useEffect } from "react";
+
+import { useCallback, useEffect } from "react";
 import PageWrapper from "@/components/layout/PageWrapper";
 import KanbanBoard from "@/features/tasks/components/KanbanBoard";
 import { getTasks } from "@/features/tasks/services/taskService";
@@ -12,9 +13,23 @@ export default function TasksPage() {
   const addTask = useTaskStore((s) => s.addTask);
   const updateTask = useTaskStore((s) => s.updateTask);
 
-  useEffect(() => { getTasks().then(({ data }) => data && setTasks(data)); }, [setTasks]);
+  useEffect(() => {
+    let cancelled = false;
+    getTasks().then(({ data }) => {
+      if (!cancelled && data) setTasks(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [setTasks]);
 
-  useRealtime<Task>("tasks", undefined, (t) => addTask(t), (t) => updateTask(t.id, t));
+  const onInsert = useCallback((t: Task) => addTask(t), [addTask]);
+  const onUpdate = useCallback(
+    (t: Task) => updateTask(t.id, t),
+    [updateTask],
+  );
+
+  useRealtime<Task>("tasks", undefined, onInsert, onUpdate);
 
   return (
     <PageWrapper title="Tasks" description="Kanban board with realtime updates">

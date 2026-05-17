@@ -1,8 +1,5 @@
 "use client";
 
-import { useRef } from "react";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
 import { deleteLeads, updateLeads } from "../services/leadService";
 import type { Lead, LeadStatus } from "../types/leads.types";
 import LeadStatusBadge from "./LeadStatusBadge";
@@ -12,10 +9,7 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 
-gsap.registerPlugin(useGSAP);
-
 export default function LeadCard({ lead }: { lead: Lead }) {
-  const cardRef = useRef<HTMLDivElement>(null);
   const removeLead = useLeadStore((s) => s.removeLead);
   const updateLeadStore = useLeadStore((s) => s.updateLead);
 
@@ -31,17 +25,8 @@ export default function LeadCard({ lead }: { lead: Lead }) {
 
   return (
     <Card
-      ref={cardRef}
       data-reveal
-      className="p-5 space-y-4 hover:border-pink-500/30 transition-colors"
-      onMouseEnter={() => {
-        if (cardRef.current)
-          gsap.to(cardRef.current, { y: -4, scale: 1.02, duration: 0.3 });
-      }}
-      onMouseLeave={() => {
-        if (cardRef.current)
-          gsap.to(cardRef.current, { y: 0, scale: 1, duration: 0.3 });
-      }}
+      className="p-5 space-y-4 hover:border-pink-500/30 transition-transform duration-300 hover:-translate-y-1 hover:scale-[1.02]"
     >
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">{lead.client_name}</h2>
@@ -51,7 +36,11 @@ export default function LeadCard({ lead }: { lead: Lead }) {
         {lead.company_name && <p>{lead.company_name}</p>}
         {lead.email && <p>{lead.email}</p>}
         {lead.project_type && <p>{lead.project_type}</p>}
-        {lead.budget != null && <p className="text-foreground font-medium">{formatCurrency(Number(lead.budget))}</p>}
+        {lead.budget != null && (
+          <p className="text-foreground font-medium">
+            {formatCurrency(Number(lead.budget))}
+          </p>
+        )}
       </div>
       <select
         value={lead.status}

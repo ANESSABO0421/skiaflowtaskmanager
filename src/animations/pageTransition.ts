@@ -3,6 +3,7 @@ import gsap from "gsap";
 export function pageTransitionEnter(container: HTMLElement | null) {
   if (!container) return null;
 
+  gsap.killTweensOf(container);
   const tl = gsap.timeline();
   tl.fromTo(
     container,

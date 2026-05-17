@@ -1,7 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 const supabase = createClient();
 
@@ -12,33 +12,35 @@ export function useRealtime<T extends { id: string }>(
   onUpdate?: (payload: T) => void,
   onDelete?: (payload: { id: string }) => void,
 ) {
+  const onInsertRef = useRef(onInsert);
+  const onUpdateRef = useRef(onUpdate);
+  const onDeleteRef = useRef(onDelete);
+
+  onInsertRef.current = onInsert;
+  onUpdateRef.current = onUpdate;
+  onDeleteRef.current = onDelete;
+
   useEffect(() => {
     const channel = supabase
       .channel(`realtime-${table}-${filter ?? "all"}`)
       .on(
         "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table,
-          filter,
-        },
-        (payload) => {
-          if (payload.eventType === "INSERT" && onInsert) {
-            onInsert(payload.new as T);
-          }
-          if (payload.eventType === "UPDATE" && onUpdate) {
-            onUpdate(payload.new as T);
-          }
-          if (payload.eventType === "DELETE" && onDelete) {
-            onDelete(payload.old as { id: string });
-          }
+        { event: "*", schema: "public", table, filter },
+        (payload: {
+          eventType: "INSERT" | "UPDATE" | "DELETE";
+          new: T;
+          old: { id: string };
+        }) => {
+          if (payload.eventType === "INSERT") onInsertRef.current?.(payload.new as T);
+          if (payload.eventType === "UPDATE") onUpdateRef.current?.(payload.new as T);
+          if (payload.eventType === "DELETE")
+            onDeleteRef.current?.(payload.old as { id: string });
         },
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      void supabase.removeChannel(channel);
     };
-  }, [table, filter, onInsert, onUpdate, onDelete]);
+  }, [table, filter]);
 }

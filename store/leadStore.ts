@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import type { Lead, LeadStatus } from "@/types/database";
 
+const MAX_LEADS = 500;
+
 interface LeadState {
   leads: Lead[];
   statusFilter: LeadStatus | "all";
@@ -17,10 +19,11 @@ export const useLeadStore = create<LeadState>((set) => ({
   leads: [],
   statusFilter: "all",
   searchQuery: "",
-  setLeads: (leads) => set({ leads }),
+  setLeads: (leads) => set({ leads: leads.slice(0, MAX_LEADS) }),
   setStatusFilter: (statusFilter) => set({ statusFilter }),
   setSearchQuery: (searchQuery) => set({ searchQuery }),
-  addLead: (lead) => set((s) => ({ leads: [lead, ...s.leads] })),
+  addLead: (lead) =>
+    set((s) => ({ leads: [lead, ...s.leads].slice(0, MAX_LEADS) })),
   updateLead: (id, updates) =>
     set((s) => ({
       leads: s.leads.map((l) => (l.id === id ? { ...l, ...updates } : l)),

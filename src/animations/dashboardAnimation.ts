@@ -4,6 +4,9 @@ export function animateDashboardCards(container: HTMLElement | null) {
   if (!container) return null;
 
   const cards = container.querySelectorAll("[data-dashboard-card]");
+  if (!cards.length) return null;
+
+  gsap.killTweensOf(cards);
   return gsap.fromTo(
     cards,
     { opacity: 0, y: 28, scale: 0.97 },
@@ -25,6 +28,7 @@ export function animateCounter(
 ) {
   if (!element) return null;
 
+  gsap.killTweensOf(element);
   const obj = { value: 0 };
   return gsap.to(obj, {
     value: endValue,
@@ -33,19 +37,5 @@ export function animateCounter(
     onUpdate: () => {
       element.textContent = Math.round(obj.value).toLocaleString();
     },
-  });
-}
-
-export function cardHoverLift(card: HTMLElement | null, isHover: boolean) {
-  if (!card) return null;
-
-  return gsap.to(card, {
-    y: isHover ? -6 : 0,
-    scale: isHover ? 1.02 : 1,
-    boxShadow: isHover
-      ? "0 20px 40px rgba(236, 72, 153, 0.15)"
-      : "0 4px 20px rgba(0, 0, 0, 0.2)",
-    duration: 0.35,
-    ease: "power2.out",
   });
 }

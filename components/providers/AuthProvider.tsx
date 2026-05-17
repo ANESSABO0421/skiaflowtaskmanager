@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
+import { useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuthStore } from "@/store/authStore";
 import { getProfile } from "@/features/auth/services/profileService";
@@ -13,33 +14,46 @@ export default function AuthProvider({
   children: React.ReactNode;
 }) {
   const setUser = useAuthStore((s) => s.setUser);
-  const setSession = useAuthStore((s) => s.setSession);
   const setProfile = useAuthStore((s) => s.setProfile);
+  const profileFetchId = useRef(0);
 
   useEffect(() => {
-    const loadSession = async (session: Awaited<
-      ReturnType<typeof supabase.auth.getSession>
-    >["data"]["session"]) => {
-      setSession(session);
+    let cancelled = false;
+
+    const loadSession = async (session: Session | null) => {
+      if (cancelled) return;
+
       setUser(session?.user ?? null);
-      if (session?.user) {
-        const { data: profile } = await getProfile(session.user.id);
-        if (profile) setProfile(profile);
-      } else {
+
+      if (!session?.user) {
         setProfile(null);
+        return;
       }
+
+      const fetchId = ++profileFetchId.current;
+      const { data: profile } = await getProfile(session.user.id);
+      if (cancelled || fetchId !== profileFetchId.current) return;
+      if (profile) setProfile(profile);
     };
 
-    supabase.auth.getSession().then(({ data: { session } }) => loadSession(session));
+    void (async () => {
+      const { data } = await supabase.auth.getSession();
+      await loadSession(data.session);
+    })();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      loadSession(session);
-    });
+    } = supabase.auth.onAuthStateChange(
+      (_event: AuthChangeEvent, session: Session | null) => {
+        void loadSession(session);
+      },
+    );
 
-    return () => subscription.unsubscribe();
-  }, [setSession, setUser, setProfile]);
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
+  }, [setUser, setProfile]);
 
   return <>{children}</>;
 }
