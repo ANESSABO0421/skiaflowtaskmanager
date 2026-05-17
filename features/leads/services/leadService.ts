@@ -10,7 +10,7 @@ export const getLeads = async () => {
 };
 
 export const createLeads = async (lead: Partial<Lead>) => {
-  return await supabase.from("leads").insert([lead]);
+  return await supabase.from("leads").insert([lead]).select().single();
 };
 
 export const updateLeads = async (id: string, updates: Partial<Lead>) => {
