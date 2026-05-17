@@ -21,7 +21,7 @@ const LoginPage = () => {
       alert(error.message);
       return;
     }
-    router.push("/");
+    router.push("/dashboard");
   };
 
   return (
