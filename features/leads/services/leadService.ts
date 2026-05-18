@@ -1,22 +1,8 @@
 import { createClient } from "@/lib/supabase/client";
 import { Lead } from "../types/leads.types";
 
-const supabase = createClient();
-
-async function withCurrentUser<T extends { created_by?: string | null }>(record: T) {
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
-    throw new Error("Please sign in before creating a lead");
-  }
-
-  return { ...record, created_by: user.id };
-}
-
 export const getLeads = async () => {
+  const supabase = createClient();
   return await supabase.from("leads").select("*").order("created_at", {
     ascending: false,
   });
@@ -44,9 +30,11 @@ export const createLeads = async (lead: Partial<Lead>) => {
 };
 
 export const updateLeads = async (id: string, updates: Partial<Lead>) => {
+  const supabase = createClient();
   return await supabase.from("leads").update(updates).eq("id", id);
 };
 
 export const deleteLeads = async (id: string) => {
+  const supabase = createClient();
   return await supabase.from("leads").delete().eq("id", id);
 };

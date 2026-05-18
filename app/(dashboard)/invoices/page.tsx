@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import PageWrapper from "@/components/layout/PageWrapper";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { getInvoices } from "@/features/invoices/services/invoiceService";
 import type { Invoice } from "@/types/database";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -13,7 +12,15 @@ export default function InvoicesPage() {
   const revealRef = useGsapReveal();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
 
-  useEffect(() => { getInvoices().then(({ data }) => data && setInvoices(data)); }, []);
+  useEffect(() => {
+    let cancelled = false;
+    getInvoices().then(({ data }) => {
+      if (!cancelled && data) setInvoices(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <PageWrapper title="Invoices" description="Manage billing and payments">

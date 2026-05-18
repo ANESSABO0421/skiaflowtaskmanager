@@ -2,6 +2,7 @@
 
 import { useGsapReveal } from "@/hooks/useGsapReveal";
 import { usePageTransition } from "@/hooks/usePageTransition";
+import { useRenderDebug } from "@/hooks/useRenderDebug";
 import { cn } from "@/lib/utils";
 
 interface PageWrapperProps {
@@ -21,6 +22,7 @@ export default function PageWrapper({
   actions,
   animate = true,
 }: PageWrapperProps) {
+  useRenderDebug(`PageWrapper:${title}`);
   const pageRef = usePageTransition(animate);
   const revealRef = useGsapReveal("[data-reveal]", animate);
 

@@ -1,8 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
 
-const supabase = createClient();
-
 export async function getNotifications(userId: string) {
+  const supabase = createClient();
   return supabase
     .from("notifications")
     .select("*")
@@ -12,10 +11,12 @@ export async function getNotifications(userId: string) {
 }
 
 export async function markNotificationRead(id: string) {
+  const supabase = createClient();
   return supabase.from("notifications").update({ read: true }).eq("id", id);
 }
 
 export async function markAllNotificationsRead(userId: string) {
+  const supabase = createClient();
   return supabase
     .from("notifications")
     .update({ read: true })

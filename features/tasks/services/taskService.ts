@@ -1,9 +1,8 @@
 import { createClient } from "@/lib/supabase/client";
 import type { Task, TaskStatus } from "@/types/database";
 
-const supabase = createClient();
-
 export async function getTasks(projectId?: string) {
+  const supabase = createClient();
   let query = supabase
     .from("tasks")
     .select("*, profiles:assignee_id(full_name, avatar_url)")
@@ -14,14 +13,17 @@ export async function getTasks(projectId?: string) {
 }
 
 export async function createTask(task: Partial<Task>) {
+  const supabase = createClient();
   return supabase.from("tasks").insert([task]).select().single();
 }
 
 export async function updateTask(id: string, updates: Partial<Task>) {
+  const supabase = createClient();
   return supabase.from("tasks").update(updates).eq("id", id).select().single();
 }
 
 export async function deleteTask(id: string) {
+  const supabase = createClient();
   return supabase.from("tasks").delete().eq("id", id);
 }
 

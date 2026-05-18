@@ -1,8 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
 
-const supabase = createClient();
-
 export async function getComments(projectId: string) {
+  const supabase = createClient();
   return supabase
     .from("comments")
     .select("*, profiles(full_name, avatar_url)")
@@ -16,5 +15,6 @@ export async function createComment(data: {
   user_id: string;
   content: string;
 }) {
+  const supabase = createClient();
   return supabase.from("comments").insert([data]).select("*, profiles(full_name, avatar_url)").single();
 }

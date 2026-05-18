@@ -16,7 +16,16 @@ export default function NotificationsPage() {
   const markAllRead = useNotificationStore((s) => s.markAllRead);
 
   useEffect(() => {
-    if (user) getNotifications(user.id).then(({ data }) => data && setNotifications(data));
+    if (!user) return;
+
+    let cancelled = false;
+    getNotifications(user.id).then(({ data }) => {
+      if (!cancelled && data) setNotifications(data);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [user, setNotifications]);
 
   return (

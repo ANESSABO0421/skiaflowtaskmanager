@@ -1,12 +1,11 @@
 import { createClient } from "@/lib/supabase/client";
 
-const supabase = createClient();
-
 export const signUp = async (
   email: string,
   password: string,
   fullName: string,
 ) => {
+  const supabase = createClient();
   return await supabase.auth.signUp({
     email,
     password,
@@ -19,6 +18,7 @@ export const signUp = async (
 };
 
 export const signIn = async (email: string, password: string) => {
+  const supabase = createClient();
   return await supabase.auth.signInWithPassword({
     email,
     password,
@@ -26,5 +26,6 @@ export const signIn = async (email: string, password: string) => {
 };
 
 export const signOut = async () => {
+  const supabase = createClient();
   return await supabase.auth.signOut();
 };

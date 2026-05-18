@@ -20,13 +20,18 @@ export default function ClientDetailPage() {
 
   useEffect(() => {
     if (!id) return;
+    let cancelled = false;
     getClientById(id).then(({ data }) => {
+      if (cancelled) return;
       if (data) {
         setClient(data);
         setProjects((data as Client & { projects?: Project[] }).projects ?? []);
       }
       setLoading(false);
     });
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   if (loading) {

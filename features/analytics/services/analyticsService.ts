@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/client";
 
-const supabase = createClient();
-
 export async function getAnalyticsSummary() {
+  const supabase = createClient();
+
   const [leads, clients, projects, invoices, tasks] = await Promise.all([
     supabase.from("leads").select("id", { count: "exact", head: true }),
     supabase.from("clients").select("id", { count: "exact", head: true }),

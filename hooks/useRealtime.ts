@@ -3,8 +3,6 @@
 import { createClient } from "@/lib/supabase/client";
 import { useEffect, useRef } from "react";
 
-const supabase = createClient();
-
 export function useRealtime<T extends { id: string }>(
   table: string,
   filter: string | undefined,
@@ -16,11 +14,14 @@ export function useRealtime<T extends { id: string }>(
   const onUpdateRef = useRef(onUpdate);
   const onDeleteRef = useRef(onDelete);
 
-  onInsertRef.current = onInsert;
-  onUpdateRef.current = onUpdate;
-  onDeleteRef.current = onDelete;
+  useEffect(() => {
+    onInsertRef.current = onInsert;
+    onUpdateRef.current = onUpdate;
+    onDeleteRef.current = onDelete;
+  }, [onInsert, onUpdate, onDelete]);
 
   useEffect(() => {
+    const supabase = createClient();
     const channel = supabase
       .channel(`realtime-${table}-${filter ?? "all"}`)
       .on(

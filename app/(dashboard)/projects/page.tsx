@@ -28,7 +28,15 @@ export default function ProjectsPage() {
     defaultValues: { status: "planning" },
   });
 
-  useEffect(() => { getProjects().then(({ data }) => data && setProjects(data)); }, [setProjects]);
+  useEffect(() => {
+    let cancelled = false;
+    getProjects().then(({ data }) => {
+      if (!cancelled && data) setProjects(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [setProjects]);
 
   const onSubmit = async (values: ProjectFormValues) => {
     const { data, error } = await createProject({

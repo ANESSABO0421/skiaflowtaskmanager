@@ -6,8 +6,6 @@ import { createClient } from "@/lib/supabase/client";
 import { useAuthStore } from "@/store/authStore";
 import { getProfile } from "@/features/auth/services/profileService";
 
-const supabase = createClient();
-
 export default function AuthProvider({
   children,
 }: {
@@ -19,6 +17,7 @@ export default function AuthProvider({
 
   useEffect(() => {
     let cancelled = false;
+    const supabase = createClient();
 
     const loadSession = async (session: Session | null) => {
       if (cancelled) return;

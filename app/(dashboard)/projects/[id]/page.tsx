@@ -27,11 +27,16 @@ export default function ProjectDetailPage() {
 
   useEffect(() => {
     if (!id) return;
+    let cancelled = false;
     Promise.all([getProjectById(id), getComments(id)]).then(([proj, comm]) => {
+      if (cancelled) return;
       if (proj.data) setProject(proj.data);
       if (comm.data) setComments(comm.data);
       setLoading(false);
     });
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   const postComment = async () => {

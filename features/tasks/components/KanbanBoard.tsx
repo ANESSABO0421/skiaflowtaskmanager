@@ -15,6 +15,7 @@ import type { Task, TaskStatus } from "@/types/database";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { ensureGsapRegistered } from "@/lib/gsap/register";
+import { useRenderDebug } from "@/hooks/useRenderDebug";
 
 ensureGsapRegistered();
 
@@ -55,6 +56,7 @@ function TaskCard({ task, index }: { task: Task; index: number }) {
 }
 
 export default function KanbanBoard() {
+  useRenderDebug("KanbanBoard");
   const boardRef = useRef<HTMLDivElement>(null);
   const tasks = useTaskStore((s) => s.tasks);
   const moveTaskStore = useTaskStore((s) => s.moveTask);
@@ -140,4 +142,3 @@ export default function KanbanBoard() {
     </DragDropContext>
   );
 }
-

@@ -15,7 +15,15 @@ export default function AssetsPage() {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { getAssets().then(({ data }) => data && setAssets(data)); }, []);
+  useEffect(() => {
+    let cancelled = false;
+    getAssets().then(({ data }) => {
+      if (!cancelled && data) setAssets(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const onUpload = async (files: FileList | null) => {
     if (!files?.length || !user) return;

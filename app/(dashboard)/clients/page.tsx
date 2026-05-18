@@ -31,7 +31,13 @@ export default function ClientsPage() {
   });
 
   useEffect(() => {
-    getClients().then(({ data }) => data && setClients(data));
+    let cancelled = false;
+    getClients().then(({ data }) => {
+      if (!cancelled && data) setClients(data);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [setClients]);
 
   const filtered = clients.filter(
